@@ -1,0 +1,98 @@
+{
+"version": 3,
+"mapping_version": 1,
+"settings_version": 1,
+"aliases_version": 1,
+"routing_num_shards": 1024,
+"state": "open",
+"settings": {
+"index": {
+"number_of_shards": "1",
+"provided_name": "myblog2002",
+"creation_date": "1602088313467",
+"analysis": {
+"filter": {
+"mes-synom": {
+"type": "synonym",
+"synonyms": [
+"officiel =>administratif, baba"
+]
+}
+},
+"analyzer": {
+"my_analyzer": {
+"filter": [
+"lowercase"
+,
+"mes-synom"
+],
+"char_filter": [
+"html_strip"
+],
+"type": "custom",
+"tokenizer": "standard"
+}
+}
+},
+"number_of_replicas": "1",
+"uuid": "2-o2koNYTW6HtQBHj97paQ",
+"version": {
+"created": "7090299"
+}
+}
+},
+"mappings": {
+"_doc": {
+"properties": {
+"creator": {
+"type": "text",
+"fields": {
+"keyword": {
+"ignore_above": 256,
+"type": "keyword"
+}
+}
+},
+"description": {
+"type": "text",
+"fields": {
+"keyword": {
+"ignore_above": 256,
+"type": "keyword"
+}
+}
+},
+"category": {
+"type": "text",
+"fields": {
+"keyword": {
+"ignore_above": 256,
+"type": "keyword"
+}
+}
+},
+"title": {
+"type": "text",
+"fields": {
+"keyword": {
+"ignore_above": 256,
+"type": "keyword"
+}
+}
+},
+"pubDate": {
+"type": "date"
+},
+"content": {
+"analyzer": "my_analyzer",
+"type": "text",
+"fields": {
+"keyword": {
+"ignore_above": 256,
+"type": "keyword"
+}
+}
+}
+}
+}
+},
