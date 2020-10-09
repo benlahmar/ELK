@@ -1,0 +1,576 @@
+GET /bank/_search
+{
+  "query": {
+    "term": {
+      "firstname.keyword": "Amber"
+    }
+  }
+}
+
+GET /bank/_search
+{
+  "query": {
+    "match": {
+      "gender": "M"
+    }
+  },
+  "collapse": {
+    "field": "age"
+  }
+}
+
+GET /bank/_count
+
+GET /bank/_search
+{
+  "explain": true, 
+  "query": { 
+    "match": { 
+      "firstname":"Amber"
+    }
+  }
+}
+
+GET /bank/_search
+ 
+  {
+    "from": 0, 
+    "size": 5, 
+    "query": {
+     "match_all": {}
+    }
+  }
+  
+  
+  
+  GET /myblog2002/_search
+     {
+   
+    "query": {
+      "match": {
+        "content": "administratif "
+      }
+      
+    },
+    "highlight": {
+"fields": {
+  "content": {}
+}
+    }
+  }
+  
+  
+  
+ POST /_reindex
+ {
+   "source": {"index": "myblog"}
+   , "dest": {"index":  "myblog2002"}
+ }
+  
+  
+  GET _search/template
+  
+  
+  
+  
+  
+  
+  
+  POST _scripts/<mytemplateid>
+{
+  "script": {
+    "lang": "mustache",
+    "source": {
+      "query": {
+        "match": {
+          "title": "{{query_string}}"
+         
+        }
+      }
+    }
+  }
+}
+
+
+GET _scripts/<mytemplateid>
+
+DELETE _scripts/<mytemplateid>
+
+GET /myblog2002/_search/template
+{
+  "id": "<mytemplateid>", 
+  "params": {
+    "query_string": "sponsor"
+    
+  }
+}
+
+
+GET /myblog2002/_search
+
+{
+  "_source": "title", 
+  "query": {
+    "match": {
+      "title": "source"
+    }
+  }
+}
+
+GET /myblog2002/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        
+      ],
+        "should": [
+        {
+          "match": {
+            "content": "source "
+          }
+        }
+      ]
+    }
+  }
+}
+
+
+
+
+
+
+GET _render/template
+{
+  "source": "{ \"query\": { \"terms\": {{#toJson}}statuses{{/toJson}} }}",
+  "params": {
+    "statuses" : {
+        "status": [ "pending", "published" ]
+    }
+  }
+}
+
+
+GET _render/template/<mytemplateid>
+{
+  "params": {
+     "query_string": "search for these words"
+  }
+}
+
+
+
+
+GET /myblog2002/_search
+{
+  "explain": true, 
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+          "category": "craft"
+          }
+  
+        },
+        {
+          "multi_match": {
+            "query": "est ",
+            "fields": ["title^5", "description"]
+          }
+        }
+      ]
+    }
+  }
+}
+
+
+
+
+GET /myblog2002/_search
+{
+  "explain": true, 
+  "query": {
+          "multi_match": {
+            "query": "est ",
+            "fields": ["title^5", "description"]
+          }
+  },
+  "post_filter":{ 
+          "term": {
+          "category": "craft"
+           } 
+  }
+}
+  
+  
+  GET /myblog2002/_search
+  {
+    "query": {
+      "bool": {
+        
+        "should": [
+          {
+            "match": {
+              
+          "description":{"query":"est "}
+            }
+          }
+        ],
+        "filter": [
+          {
+            "term": {
+              "category": "craft"
+            }
+          }
+        ]
+      }
+    }
+  }
+  
+  
+  GET /myblog2002/_search
+  {
+    "explain": true, 
+    "query": {
+      "bool": {
+        "must": [
+          {
+            "match": {
+              "title": "source"
+            }
+          },
+             { "range": {
+              "pubDate": {
+                "gte": "120"
+              }
+             }
+            }
+        ]
+      }
+    }
+  }
+  
+  
+GET /crimes/_search
+{
+  "query": {
+    "match": {
+      "message": "CRIMINAL"
+    }
+  }
+}
+  
+  
+  GET /myblog2002/_search
+  {
+    
+    "query": {
+      "bool": {
+        "must": [
+          {
+            "multi_match": {
+              "query": "source ",
+              "fields": ["content","title"],
+                "type": "best_fields"
+            }
+            }
+          
+        ],
+        "filter": [
+          {
+            "range": {
+              "pubDate": {
+                "gte": 120
+               
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+  
+  
+  
+  GET /myblog2002/_search
+  {
+    
+    "aggs": {
+      "bycat": {
+      "range": {
+          "field": "pubDate",
+          "ranges": [
+              {"from": "2011-01-01"},
+              {"from": "2011-12-31","to":"2012-12-31"},
+              {"to": "2011-12-31"}
+            
+          ]
+        }
+    }
+  }
+  }
+  
+  
+  
+  GET /bank/_search
+  {
+    "size": 0, 
+    "aggs": {
+      "byage": {
+          "terms": {
+          "field": "gender.keyword",
+          "size": 10
+        },
+        "aggs": {
+          "byage": {
+            "avg": {
+              "field": "age"
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  
+GET /myblog2002/_search
+{
+    "size": 0, 
+  "aggs": {
+    "bycat": {
+      "terms": {
+        "field": "category.keyword",
+        "size": 10
+      },
+      "aggs": {
+        "by_crator": {
+          "terms": {
+            "field": "creator.keyword",
+            "size": 10
+          }
+        },
+        "gggg":
+        {
+          "terms": {
+            "field": "pubDate",
+            "size": 10
+          }
+        }
+      }
+    },
+    "fff":{
+      "terms": {
+        "field": "pubDate",
+        "size": 10
+      }
+    }
+      
+    }
+  }
+
+GET /myblog2002/_search
+{
+  "size": 5, 
+
+  "aggs": {
+   "hh":{
+      "terms": {
+       "field": "category.keyword",
+       "size": 10
+     }
+   }
+  }
+}
+
+
+GET _sql
+{
+  "query": "SELECT * FROM bank where age<44 "
+  
+ 
+}
+
+
+
+GET /myblog2002/_search
+{
+  
+  "aggs": {
+    "bydate": {
+      "date_histogram": {
+        "field": "pubDate",
+        "interval": "year"
+      },
+     "aggs": {
+        "bycat": {
+         "value_count": {
+           "field": "category.keyword"
+         }
+       },
+       "dddd":{
+          "value_count": {
+           "field": "creator.keyword"
+         }
+       }
+       ,
+    "bycreator":
+       {
+         "bucket_script": {
+             "buckets_path": {
+                  "gg":"bycat",
+                   "ff":"dddd"
+               },
+         "script": "params.gg * params.ff"
+         }
+       }
+    }
+}
+  }
+}
+
+  
+  
+GET /myblog2002/_search
+{
+ 
+  "query": {
+    
+    
+          "multi_match": {
+            "query": "est ",
+            "fields": ["title^5", "description"]
+          }
+  },
+  "post_filter":{ 
+          "term": {
+          "category": "craft"
+           } 
+  }
+}
+  
+  
+  
+  GET /bank/_search?size=0
+{
+  "aggs": {
+    "avg_grade": { "avg": { "field": "account_number" } }
+  }
+}
+  
+  
+  POST /bank/_search?size=0
+{
+  "aggs": {
+    "grades_stats": { "stats": { "field": "balance" } }
+  }
+}
+
+
+GET /bank/_search
+{
+  "size": 0,
+  "aggs": {
+    "grades_stats": { "extended_stats": { "field": "balance" } }
+  }
+}
+
+
+GET /bank/_search
+{
+  "size": 0, 
+  "aggs": {
+    "aaaa": {
+      "matrix_stats": {
+        "fields": ["balance","age"]
+ 
+      }
+    }
+  }
+}
+
+
+POST /bank/_search?size=0
+{
+  "aggs": {
+    "top_tags": {
+      "terms": {
+        "field": "age",
+        "size": 3
+      },
+      "aggs": {
+        "top_sales_hits": {
+          "top_hits": {
+            "sort": [
+              {
+                "balance": {
+                  "order": "desc"
+                }
+              }
+            ],
+            "_source": {
+              "includes": [ "city", "gender" ]
+            },
+            "size": 1
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+GET /bank/_search
+{
+  "query": {
+    "function_score": {
+      "query": { "match_all": { } },
+      "boost": "5",
+      "random_score": {}, 
+      "boost_mode": "multiply"
+    }
+  }
+}
+
+
+
+
+GET bank/_search
+{
+  "query": {
+    "function_score": {
+      "query": {
+        "match": { "state": "IL" }
+      },
+      "script_score": {
+        "script": {
+          "source": "Math.log(2 + doc['age'].value)"
+        }
+      }
+    }
+  }
+}
+
+
+
+GET bank/_search
+{
+  "query": {
+    "function_score": {
+      "query": {
+        "match": { "city": "Delwood" }
+      },
+      "script_score": {
+        "script": {
+          "params": {
+            "a": 5,
+            "b": 1.2
+          },
+          "source": "params.a / Math.pow(params.b, doc['age'].value)"
+        }
+      }
+    }
+  }
+}
