@@ -1,0 +1,1454 @@
+
+GET /bankoperation2/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "age": {
+              "value": 26
+            }
+          }
+        }
+        
+      ],
+      "should": [
+        {
+          "match": {
+            "gender": "female"
+          }
+        }
+      ]
+    }
+  }
+  
+}
+
+GET /bankoperation2/_search
+{
+  "aggs": {
+    "ccc":{
+           "terms": {
+             "field": "gender.keyword"
+             
+           }
+        ,"aggs": {
+                  "dd": {
+            "top_hits": {
+              "size": 5,
+              "from": 0
+            }
+          }
+        }
+    }
+  }
+  
+}
+
+
+
+''On cherche les clients genre : M, city: casa and state: Maroc
+ ''dont l’Age est  entre 20 et 30
+
+GET /bankoperation2/_search
+{
+  
+  "query": {
+    "bool": {
+     "must": [
+      {
+         "range": {
+           "age": {
+             "gte": 20,
+             "lte": 30
+           }
+         }
+       }
+     ],"should": [
+       {
+         "match": {
+           "state": "maroc"
+         }
+       },{
+         "match": {
+         "city": "casablanca"
+       }}
+     ],"minimum_should_match": 1
+     
+     ,
+     "filter": [
+       {
+         "term": {
+           "gender": "male"
+         }
+       }
+     ]
+    }
+  }
+}
+
+GET bankoperation2/_search
+
+GET bankoperation2/_search
+{
+  
+  "query": {
+    "dis_max": {
+      "tie_breaker": 0.1,
+     
+      "queries": [
+        {
+          "term": {
+            "gender": {
+              "value": "female"
+            }
+          }
+        },
+        {
+          "range": {
+            "age": {
+              "gte": 20,
+              "lte": 30
+            }
+          }
+        }
+        ]
+    }
+  }
+}
+
+GET bankoperation2/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "range": {
+            "balance": {
+              "gte": 8000
+            }
+          }
+        },
+        {
+          "range": {
+            "age": {
+              "gte": 25
+            }
+          }
+        },
+        {
+          "script": {
+            "script": {
+              "source": "doc['operations.type.keyword'].value.length() > 5",
+              "lang": ""
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+GET bankoperation2/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "range": {
+            "operations.amount": {
+              "gte": 300
+            }
+          }
+        },
+        {
+          "term": {
+            "operations.type.keyword": {
+              "value": "debit"
+            }
+          }
+        }
+      ]
+    }
+}
+}
+
+GET bankoperation2/_search
+{
+  "query": {
+      "script": {
+        "script": {
+          "source": "doc['operations.type.keyword'].value=='debit'"
+        }
+      }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "term": {
+            "city": {
+              "value": "casa"
+            }
+          }
+        },
+        {
+          "term": {
+            "city": {
+              "value": "casablanaca"
+            }
+          }
+        }
+      ]
+      
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+  "query": {
+    "query_string": {
+     
+      "query": "COSMOSIS    SENTIA",
+       
+      "fields": ["company"]
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+  "size": 1, 
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "gender": "female"
+          }
+        }
+      ]
+    }
+  },"aggs": {
+    "byavgfemale": {
+      "extended_stats": {
+        "field": "age"
+      }
+    }
+  }
+}
+
+'la moyenne des amounts du compte num:2'
+
+GET bankoperation2/_search
+{
+  "query": {
+    "match": {
+      "account_number": 2
+    }
+  },"aggs": {
+    "avgbyamount": {
+      "avg": {
+        "field": "operations.amount"
+      }
+    },
+    "bysumamount":{
+      "sum": {
+        "field": "operations.amount"
+      }
+    }, "bytype":{
+      "value_count": {
+        "field": "operations.type.keyword"
+      }
+    }
+  }
+}
+
+
+//Quel est le AVG des opérations de type debit du compte num 1
+
+GET bankoperation2/_search
+{
+   "aggs": {
+    "oo":{
+     "avg": {
+     "script": {
+       "source": "doc['gender.keyword'].value=='female'?doc.age.value:0"
+     }
+       
+     }
+    }
+  }
+}
+
+Récupérer les opérations par trimistres / mois
+
+
+GET bankoperation2/_search
+{
+  "size": 1, 
+  "aggs": {
+    "bymois": {
+        "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "year"
+     },"aggs": {
+       "byamount": {
+          "avg": {
+           "field": "operations.amount"
+         }
+       }
+     }
+     }
+    }
+  }
+
+
+GET bankoperation2/_search
+{
+  "aggs": {
+    "byage": {
+      "histogram": {
+        "field": "age",
+        "interval": 5
+      }
+    }
+  }
+}
+
+Récupérer les opérations par trimistres / mois utiliser date range
+
+GET bankoperation2/_search
+{
+  "size": 0, 
+  "aggs": {
+    "byx": {
+     "date_range": {
+       "field": "operations.operationDate",
+       "ranges": [
+         {
+           "from": "2018",
+           "to": "2019"
+         },
+          {
+           "from": "2019",
+           "to": "2020"
+         }
+       ],"format": "yyyy-MM"
+     }
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+  "from": 0, 
+  "size": 5, 
+  "aggs": {
+    "byageperiode": {
+      "range": {
+        "field": "age",
+        "keyed": true, 
+        "ranges": [
+          {
+            "from": 20,
+            "to": 30
+          },
+          {
+            "from": 30,
+            "to": 35
+          },
+          {
+            "from": 35,
+            "to": 40
+          }
+        ]
+      }, "aggs": {
+              "bygendre": {
+             "terms": {
+               "field": "gender.keyword"
+               
+             },"aggs": {
+               "avg": {
+                 "avg": {
+                   "field": "operations.amount"
+                 }
+               }
+             }
+            }
+      }
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+  "aggs": {
+    
+    "NAME": {
+     "filter": {
+       "term": {
+         "operations.type.keyword": "debit"
+       }
+      }
+    }
+  }
+}
+
+
+
+GET bankoperation2/_search
+{
+  "aggs": {
+    "bymois": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      },
+      "aggs": {
+        "byopamount": {
+          "sum": {
+            "field": "operations.amount"
+          }
+        },
+        "byavg":{
+          "moving_avg": {
+            "buckets_path": "byopamount"
+          }
+        }, "oo":{
+          "bucket_selector": {
+            "buckets_path": {"x":"byopamount","y":"byavg"},
+            "script": "x/100"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+GET bankoperation2/_search
+{
+  "size": 0, 
+  "aggs": {
+    "abc": {
+      "composite": {
+        "sources": [
+          {
+            "bytranche": {
+             "histogram": {
+               "field": "age",
+               "interval": 10
+             }
+            }
+          },
+          {
+            "bygendre":{
+              "terms": {
+                "field": "gender.keyword"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+
+
+
+
+GET bankoperation/_search
+{
+
+  "query": {
+    "term": {
+      "gender": {
+        "value": "female"
+      }
+    }
+  }
+}
+
+
+GET bankoperation/_search
+{
+
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "gender.keyword": "female"
+          }
+        },
+        {
+          "match": {
+            "city": "Kiskimere"
+          }
+        },
+        {
+          "range": {
+            "age": {
+              "gte": 20,
+              "lte": 30
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+
+GET bankoperation/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "account_number": 1
+          }
+        }
+      ],
+      "should": [
+        {
+          "match": {
+            "gender.keyword": "male"
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "match": {
+            "gender.keyword": "female"
+          }
+        }
+      ]
+    }
+  }
+}
+
+GET bankoperation/_search
+
+GET bankoperation/_search
+{
+  "query": {
+   
+           "bool": {
+              "must": [
+              {
+              "range": {
+                "balance": {
+                  "gte": 8000
+                  
+                }
+              }
+        }
+      ],
+      "filter": [
+        {
+          "script": {
+            "script": "doc['age'].value > 25"
+          }
+        }
+        
+        
+      ]
+    }
+  }
+}
+GET bankoperation/_search
+{
+  "query": {
+   "dis_max": {
+     "tie_breaker": 0.7,
+     "boost": 1.2,
+     "queries": [
+       {
+         "match": {
+         "city.keyword": "casa"
+        }
+        },
+        {
+          "match": {
+            "gender.keyword": "female"
+          }
+        }
+       ]
+   }
+  }
+}
+
+GET bankoperation2/_search
+{
+  "query": {
+    "query_string": {
+      "default_field": "city.keyword",
+      "query": "casa  OR casablanca"
+    }
+  }
+}
+
+GET bankoperation2/_search
+{
+  "query": {
+    "query_string": {
+     "query": "(city.keyword:casa OR city.keyword:casablanca) AND (company.keyword:fsbm) "
+    }
+  }
+}
+
+GET bankoperation2/_search
+{
+"query": {
+  "bool": {
+    "filter": [
+      {
+        "script": {
+          "script": {
+            "source": "doc['operations.amount'].value > 200 "
+          }
+        }
+      }
+    ]
+  }
+}
+  
+}
+
+
+GET bankoperation2/_search
+{
+"query": {
+    "bool": {
+      "filter": [
+        {
+          "script": {
+            "script": {
+              "source": "doc['operations.amount'].value > 200"
+            }
+          }
+        },
+        {
+          "script": {
+            "script": {
+              "source": "doc['operations.type.keyword'].value=='debit'"
+            }
+          }
+        }
+      ]
+    }
+}
+  
+}
+
+GET bankoperation2/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "script": {
+            "script": {
+              "source": "doc['operations.type.keyword'].value.length() <6"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+GET bankoperation2/_search
+{
+  "aggs": {
+    "bytype":{
+      "terms": {
+        "field": "operations.type.keyword"
+        
+      },"aggs": {
+        "NAME": {
+          "avg": {
+            "field": "operations.amount"
+          }
+        }
+      }
+    }
+  }
+}
+
+GET bankoperation2/_search
+{
+  "query": {
+   "bool": {
+     "must": [
+       {
+          "range": {
+                "balance": {
+                  "gte": 8000
+                  
+                }
+              }
+       }
+     ],"filter": [
+       {
+         "script": {
+           "script": {
+             "source": "doc['operations.type.keyword'].value.length() >4"
+           }
+         }
+       }
+     ]
+   }
+  }
+}
+
+GET bankoperation/_search
+{
+  "query": {
+    "nested": {
+      "path": "operations",
+      "query": {
+        "bool": {
+          "must": [
+            {
+            "range": {
+              "operations.amount": {
+                "gte": 350
+              }
+            }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+
+GET bankoperation/_search
+{
+  "query": {
+    "nested": {
+      "path": "operations",
+  "query": {
+    "bool": {
+      "must": [
+        {"range": {
+         
+          "operations.operationDate": {
+           
+            "lte": "2014-10-28T06:57:44",
+            "format": "yyyy-MM-dd'T'HH:mm:ss"
+            
+          }
+          }
+        }
+      ],"filter": [
+       {
+         "script": {
+           "script": {
+             "source": "doc['operations.type.keyword'].value.length() <6"
+           }
+         }
+       }
+     ]
+    }
+  }
+}}}
+
+GET bankoperation/_mapping
+
+GET bankoperation/_search
+{
+  "_source": ["operations"], 
+ "query": {
+   
+   "bool": {
+     "must": [
+       {
+          "match": {
+           "account_number": 1
+           
+         }
+       }
+     ]
+   }
+ }
+}
+
+
+GET bankoperation/_search
+{
+  "query": {
+    "match": {
+      "account_number": 1
+    }
+  },
+   "aggs": {
+    "operat": {
+      "nested": {
+        "path": "operations"
+      },
+      "aggs": {
+       "maxop": {
+          "max": {
+            "field": "operations.amount"
+        
+      }
+    }
+  }
+      
+    }
+}}
+
+GET bank/_search
+{
+  "query": {
+    "match": {
+      "account_number": 1
+    }
+  },"aggs": {
+    "sumbalance": {  
+      "sum": {
+        "field": "balance"
+      }
+    }
+  }
+}
+
+GET bankoperation2/_search
+{
+  "query": {
+    "term": {
+      "account_number": {
+        "value": 1
+      }
+    }
+  }, "aggs": {
+    "byavg": {
+      "avg": {
+        "field": "operations.amount"
+      }
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+  "query": {
+    "bool": {
+        "must": [
+          {
+              "match": {
+              "account_number": 1
+            }
+          }
+      ]
+    }
+  }, "aggs": {
+    "byavg": {
+      "avg": {
+        "field": "operations.amount",
+        "script": {
+          "source": "doc['operations.type.keyword']=='debit'?0:doc['operations.amount'].value"
+        }
+      }
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+  "query": {
+    "match_all": {
+      
+    }
+  },"aggs": {
+    "bymaxtotal": {
+      "max": {
+        "field": "operations.amount"
+      }
+    }
+  }
+}
+
+GET bankoperation/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "account_number": {
+              "value": "1"
+            }
+          }
+        }
+          
+        
+      ]
+    }
+  },
+   "aggs": {
+    "operat": {
+      "nested": {
+        "path": "operations"
+      },"aggs": {
+    "byopdebit": {
+      "sum": {
+        "field": "operations.amount"
+        
+      }
+    }
+  }
+      
+    }
+}
+  
+}
+
+
+
+GET bankoperation/_search
+{
+ "query": {
+    "match": {
+      "account_number": 1
+    }
+  },
+   "aggs": {
+    "operat": {
+      "nested": {
+        "path": "operations"
+      },"aggs": {
+    "byopdebit": {
+      "avg": {
+        "field": "operations.amount", 
+        "script": {
+          
+          "source": "doc['operations.type.keyword'].value=='debit' ? doc['operations.amount'].value: 0"
+          }
+        
+      }
+    }
+  }}
+}}
+
+GET bankoperation/_search
+{
+  "size": 0, 
+  "query": {
+    "match": {
+       "account_number": 88
+    }
+  }, "aggs": {
+    "operat": {
+      "nested": {
+        "path": "operations"
+      },"aggs": {
+        "s": {
+          "filter": {
+            "term": {
+              "operations.type.keyword": "debit"
+            }
+          }  ,"aggs": {
+        "xx": {
+          "top_hits": {
+            "size": 10
+          }
+        }
+      }
+        }
+      }
+      
+      
+    
+    }
+}
+}
+
+        
+          
+          
+
+
+GET bankoperation/_search
+{
+  
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+          "account_number": 1
+        }
+          
+        }
+      ]
+    }
+  },"post_filter": {
+    "nested": {
+      "path": "operations",
+      "query": {
+        "term": {
+          "operations.type.keyword": {
+            "value": "debit"
+          }
+        }
+      }
+    }
+  }
+  }
+
+
+GET bankoperation/_search
+{
+  "size": 0, 
+  "query": {
+    "match": {
+       "account_number": 88
+    }
+  }, "aggs": {
+    "operat": {
+      "nested": {
+        "path": "operations"
+      },"aggs": {
+        "s": {
+          "filter": {
+            "term": {
+              "operations.type.keyword": "debit"
+            }
+          } ,"aggs": {
+            "ss": {
+             "sum": {
+               "field": "operations.amount"
+              
+             }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+GET bankoperation/_search
+
+GET bankoperation/_search
+{
+  "size": 0, 
+  "query": {
+    "match": {
+       "account_number": 88
+    }
+  }, "aggs": {
+    "operat": {
+      "nested": {
+        "path": "operations"
+      },"aggs": {
+        "sumdebit": {
+              "sum": {
+            "field": "operations.amount",
+            "script": "doc['operations.type.keyword'].value=='debit' ? doc['operations.amount'].value: 0"
+          }
+        },
+        "sumcredit":{
+          "sum": {
+            "field": "operations.amount",
+            "script":  "doc['operations.type.keyword'].value=='cridit' ? doc['operations.amount'].value: 0"
+          }
+        }
+        }
+      }
+      }
+      }
+      
+   
+  
+
+
+
+GET bankoperation/_search
+{
+  "size": 1, 
+  "query": {
+    "match": {
+       "account_number": 88
+    }
+  }, "aggs": {
+        "sumdebit": {
+          "nested": {
+            "path": "operations"
+          },"aggs":{ 
+            "total":{
+              "sum": {
+            "field": "operations.amount",
+            "script": "doc['operations.type.keyword'].value=='debit' ? doc['operations.amount'].value: 0"
+          }
+        }
+          }
+        },
+        "sumcredit":{
+          "nested": {
+            "path": "operations"
+          }, "aggs":{
+            "totalcredit":{
+          "sum": {
+            "field": "operations.amount",
+            "script":  "doc['operations.type.keyword'].value=='cridit' ? doc['operations.amount'].value: 0"
+          }
+        }
+          }
+        },
+        "balance":{
+          "sum": {
+            "field": "balance"
+          }
+        }
+          }
+          }
+
+
+
+GET bankoperation2/_search
+{
+  "query": {
+    "match": {
+      "account_number": 88
+    }
+  },"aggs": {
+    "bydate": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "fixed_interval": "30d"
+        
+      }
+    }
+  }
+}
+
+GET bankoperation2/_search
+{
+  "query": {
+    "match": {
+      "account_number": 88
+    }
+  
+  },"aggs": {
+    "bydate": {
+      "date_range": {
+        "field": "operations.operationDate",
+        "ranges": [
+          {
+            "from": "now-5y/M",
+            "to": "now"
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+  "query": {
+    "match": {
+      "account_number": 88
+    }
+  
+  },"aggs": {
+    "bydate": {
+      "date_range": {
+        "format": "MM-yyy",
+        "field": "operations.operationDate",
+        "ranges": [
+         { "from": "01-2015", "to": "03-2015", "key": "trimestre_01" },
+          { "from": "03-2015", "to": "06-2015", "key": "trimestre_02" },
+          { "from": "06-2015", "to": "09-2015", "key": "trimestre_03" },
+          { "from": "09-2015", "to": "12-2015", "key": "trimestre_04" }
+        ],"keyed": true
+      }
+    }
+  }
+}
+
+
+
+GET bankoperation2/_search
+{
+  "aggs": {
+    "bycomp": {
+      "composite": {
+        "sources": [
+          {
+            "operat": {
+              "terms": {
+                "field": "operations.type.keyword"
+                
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+
+GET bankoperation2/_search
+{
+   
+  "aggs": {
+    "bycomp": {
+      "composite": {
+        "sources": [
+          {
+            "bystate": {
+              "terms": {
+                "field": "state.keyword"
+                
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+   
+  "aggs": {
+    "bycomp": {
+      "composite": {
+        "sources": [
+          {
+            "byamount": {
+              "histogram": {
+                "field": "operations.amount",
+                "interval": 50
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+   
+  "aggs": {
+    "bycomp": {
+      "composite": {
+        "sources": [
+          {
+            "bymois": {
+              "date_histogram": {
+                "field": "operations.operationDate",
+                "interval": "month",
+                "format": "yyyy-MM-dd" 
+              }
+            }
+          },{
+            "oo":{
+              "terms": {
+                "field": "operations.type.keyword"
+                
+              }}
+            }
+        ],"after": {"bymois":"2014-05-01", "oo":"debit"}
+      },"aggs": {
+        "avgs": {
+          "avg": {
+            "field": "operations.amount"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+
+GET bankoperation2/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bytype": {
+      "filter": {
+        "term": {
+          "operations.type.keyword": "debit"
+        }
+      },"aggs": {
+        "avgamount": {
+          "avg": {
+            "field": "operations.amount"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bydate": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      }, "aggs": {
+        "sumx": {
+              "sum": {
+                "field": "operations.amount"
+              }
+        },
+        "movingavg": {
+            "moving_avg": {
+            "buckets_path": "sumx"
+          }
+        }
+      }
+      
+    }
+  }
+}
+
+
+
+GET bankoperation2/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bydate": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      }, "aggs": {
+        "bygenre": {
+          "value_count": {
+            "field": "gender.keyword"
+          }
+        },
+        "som":{
+          "sum": {
+            "field": "operations.amount"
+          }
+        },
+        "ss":{
+          "bucket_script": {
+            "buckets_path": {"nbg":"bygenre","sm":"som"},
+            "script": "params.sm/params.nbg"
+          }
+        }
+      }
+    }
+  }
+}
+  
+
+
+GET bankoperation2/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bydate": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      }, "aggs": {
+        "bygenre": {
+          "value_count": {
+            "field": "gender.keyword"
+          }
+        },
+        "som":{
+          "sum": {
+            "field": "operations.amount"
+          }
+        },
+        "ss":{
+          "bucket_selector": {
+            "buckets_path": {"nbg":"bygenre","sm":"som"},
+            "script": "params.sm > 20000 "
+          }
+        }
+      }
+    }
+  }
+}
+  
+
+
+
+GET bankoperation2/_search?typed_keys
+{
+  "size": 0, 
+  "aggs": {
+    "bydate": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      }, "aggs": {
+        "bygenre": {
+          "value_count": {
+            "field": "gender.keyword"
+          }
+        },
+        "som":{
+          "sum": {
+            "field": "operations.amount"
+          }
+        },
+        "ss":{
+          "bucket_script": {
+            "buckets_path": {"nbg":"bygenre","sm":"som"},
+            "script": "params.sm/params.nbg"
+          }
+        },
+        "top":{
+          "top_hits": {
+            "size": 1,
+            "_source": ["account_number","http.response.bytes", "message"]
+          }
+        }
+      }
+    }
+  }
+}
+
+
+GET bankoperation2/_search
+{
+  
+}
