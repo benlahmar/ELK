@@ -1,0 +1,468 @@
+
+GET /myblogindex
+{
+  
+}
+
+
+PUT /myblogindex/
+{
+  "settings":
+    "analysis":{
+      "analyzer":{
+        "myanalyzer":{
+          "type":"standard",
+          "stopwords":"_english_"
+        }
+      }
+    }
+  }
+}
+
+
+POST /myblogindex2/_open
+
+GET  /myblogindex2/
+
+PUT /myblogindex2/_settings
+{
+  
+   "analysis": {
+         "analyzer": 
+          {
+            "myanalyzer":{
+                  
+                  "type":"simple",
+                  "stopwords":"_english_"
+                }
+            
+          }
+     
+   }
+}
+
+POST /myblogindex2/_analyze
+{
+  "text": "the best courses of elastic version 9.7-4",
+  "analyzer": "myanalyzer"
+}
+
+
+POST /myblogindex2/_close
+
+GET /myblogindex2/
+
+PUT /myblogindex2/_settings
+{
+  
+   "analysis": {
+         "analyzer": 
+          {
+            "myanalyzer":{
+                  
+                  "type" : "simple",
+                "stopwords" : "_english_"
+                }
+            
+          }
+     
+   }
+}
+
+POST /myblogindex/_close
+
+PUT /myblogindex/_settings
+{
+  "analysis": {
+    "analyzer": { 
+        "myanalyzer2":{
+            "type":"custom",
+            "tokenizer": "standard",
+            "char_filter": ["html_strip"],
+            "filter": []
+        }
+    }
+  }
+}
+
+POST /myblogindex/_open
+
+POST /myblogindex/_analyze
+{
+  "text": "<span>the Best</span> courses of elastic version 7.3-9",
+  "analyzer": "myanalyzer2"
+}
+
+GET /myblogindex/
+POST /myblogindex/_close
+POST /myblogindex/_open
+PUT /myblogindex/_settings
+{
+  "analysis": {
+    "analyzer": { 
+        "myanalyzer2":{
+            "type":"custom",
+            "tokenizer": "mytokenizer",
+            "char_filter": ["html_strip"],
+            "filter": ["lowercase", "stemmer"]
+        }
+    },
+    "tokenizer": {
+      "mytokenizer":{
+        "type":"edge_ngram",
+        "min_gram":2,
+        "max_gram":20,
+        "token_chars":["letter", "digit"]
+      }
+    }
+  }
+}
+POST /myblogindex/_analyze
+{
+  "text": "the Best <p>courses</b> if elastic version 7.3-9",
+  "analyzer": "myanalyzer2"
+}
+
+
+GET /myblogindex/
+
+
+GET /myblogindex/_search
+
+
+
+
+PUT  /myindex003
+{
+  "mappings": {
+    "properties": {
+      "nom":{
+            "type": "text",
+            "fields": {
+                  "keyword" : {
+                    "type":"keyword",
+                     "ignore_above" : 256
+                  }
+            }
+      },
+      "age":{
+        "type": "integer"
+      }
+    }
+  }
+}
+GET /myblogindex/_search
+
+GET /myblogindex4
+
+PUT  /myblogindex/_mapping
+{
+    "properties": {
+      "content" : {
+          "type" : "text",
+          
+          "term_vector": "with_positions_offsets",
+          
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        }
+      }
+  }
+  
+  
+  
+POST /_reindex
+  {
+    "source": {"index": "myblogindex"},
+    "dest": {"index":"myblogindex4"}
+    
+  }
+  
+    GET /sofrecom2020/_search?q=la
+    
+  PUT /sofrecom2020
+  {
+    "mappings": {
+      "properties": {
+           "contenu":{
+               "type": "text", 
+                 "analyzer": "simple",
+                  "search_analyzer": "standard",
+                  "term_vector": "with_positions_offsets"
+          },
+          "titre":{
+              "type": "text"
+              }
+        }
+    }
+  }
+  
+  POST /sofrecom2020/_doc/1
+  {
+    "contenu":"c'est le contenu du chapitre 4 et la section 4et le chapitre 7",
+    "titre":"le titre du  livre"
+  }
+  
+    GET /sofrecom2020/_doc/1/_termvectors
+    
+    GET /sofrecom2020/_doc/1
+  
+
+  
+  GET /myblogindex4/
+  {
+    "settings":{
+    "analysis": {
+    "analyzer": { 
+        "myanalyzer2":{
+            "type":"custom",
+            "tokenizer": "standard",
+            "char_filter": ["html_strip"],
+            "filter": ["lowercase"]
+        }
+    }
+  }
+  }}
+  
+  GET /myblogindex4/_search
+  
+  POST /myblogindex4/_mapping
+  {
+     
+      "properties" : {
+        "category" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "content" : {
+          "type" : "text",
+          "analyzer":"myanalyzer2",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "creator" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "description" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "likes" : {
+          "type" : "text"
+        },
+        "pubDate" : {
+          "type" : "date"
+        },
+        "title" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        }
+      }
+    }
+  
+  GET /myblogindex4/_search?q=category:craft
+  
+  GET /myblogindex4/_search
+  {
+    
+    "query": {
+      "term": {
+        "category.keyword": {
+          "value": "Craft"
+        }
+      }
+    }
+  }
+  
+   GET /myblogindex4/
+   
+   GET /myblogindex4/_search
+  {
+    "query": {
+      "term": {
+        "category.keyword": {
+          "value": "Craft"
+        }
+      }
+    }
+  }
+  
+  
+  GET /myblogindex5/_search
+  {
+    "query": {
+      "match": {
+        "title": "workshop"
+      }
+    }
+    
+  }
+  
+POST  /myblogindex4/_open
+  GET /myblogindex5
+PUT  /myblogindex5
+{
+  "settings":{
+  "analysis" : {
+          "analyzer" : {
+            "myanalyzersyn" : {
+              "filter" : [
+                "syn"
+              ],
+              "type" : "custom",
+              "tokenizer" : "standard"
+              
+            }
+            },
+            "filter":{
+            "syn":{
+              "type":"synonym",
+              "synonyms":["conférences => workshop"]
+            }
+          }
+        }}
+}
+
+PUT /myblogindex5/_mapping
+{
+     
+      "properties" : {
+        "category" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "content" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "creator" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "description" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "likes" : {
+          "type" : "text"
+        },
+        "pubDate" : {
+          "type" : "date"
+        },
+        "title" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },"analyzer":"myanalyzersyn"
+        }
+      }
+    }
+
+GET /myblogindex5/_search
+
+POST /_reindex
+{
+  "source": {"index": "myblogindex4"},
+  "dest": {"index": "myblogindex5"}
+}
+
+
+
+
+GET bank2/_search
+
+
+On cherche les clients genre : M, 
+ dont l’Age est  entre 20 et 30
+ et de preference city: casa and state: Maroc
+
+GET /bank2/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+                {
+                  "range": {
+                    "age": {
+                      "gte": 20,
+                      "lte": 30
+                    }
+                  }
+                }
+        ],
+          "should": [
+            {
+              "match": {
+                "city": "Bascom"
+              }
+            }
+       
+            ],
+            "must_not": [
+              {
+                "term": {
+                  "gender": {
+                    "value": "male"
+                  }
+                }
+              }
+            ]
+    }
+  }
+}
+
+GET /bank2/_search
+
+
