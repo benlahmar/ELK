@@ -1,0 +1,26 @@
+input {
+ file {
+   path => ["D:/ELK/logstash-7.9.2/testdata.log"]
+   sincedb_path => "nul"
+   start_position => "beginning"
+  }
+}
+filter {
+    grok { 
+	 match => { "message" => "%{NUMBER:timestamp:float}%{SPACE}%{NUMBER:duration:int}\s%{IP:client_address}\s
+
+%{WORD:cache_result}/%{POSINT:status_code:int}\s%{NUMBER:bytes:int}\s%{WORD:request_method}\s%{NOTSPACE:url}\s
+
+%{NOTSPACE:user}\s%{WORD:hierarchy_code}/%{NOTSPACE:server}\s%{NOTSPACE:content_type}" }
+remove_field => ["message"]
+}
+}
+output {
+elasticsearch {
+ hosts => ["localhost:9200"]
+ index =>"sofrecom2-%{+YYYY.MM.dd}"
+}
+  stdout {
+    codec => rubydebug
+  }
+}
