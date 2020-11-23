@@ -1,0 +1,53 @@
+GET /sofrecombank/_search
+{
+  "size": 0,
+  "aggs": {
+    "NAME": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      },"aggs": {
+        "total": {
+          "sum": {
+            "field": "balance"
+          }
+        },
+        "byfemale":{
+          "filter": {
+            "term": {
+              "gender.keyword": "female"
+            }
+          },
+          "aggs": {
+            "somfemale": {
+              "sum": {
+                "field": "balance"
+              }
+            }
+          }
+        },
+        "bymale":{
+          "filter": {
+            "term": {
+              "gender.keyword": "male"
+            }
+          }
+        },
+        "partfemmes":{
+          "bucket_script": {
+            "buckets_path": {
+              "t":"total",
+              "tfemme":"byfemale>somfemale"
+            },
+            "script": {
+              "source": "params.tfemme/params.t"
+            }
+          }
+          
+        }
+        
+      }
+    }
+  }
+  
+}
