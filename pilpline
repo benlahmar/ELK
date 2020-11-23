@@ -1,11 +1,11 @@
-GET /sofrecombank/_search
+  GET /sofrecombank/_search
 {
   "size": 0,
   "aggs": {
     "NAME": {
       "date_histogram": {
         "field": "operations.operationDate",
-        "interval": "month"
+        "calendar_interval": "month"
       },"aggs": {
         "total": {
           "sum": {
@@ -31,6 +31,12 @@ GET /sofrecombank/_search
             "term": {
               "gender.keyword": "male"
             }
+          },"aggs": {
+            "somhomme": {
+              "sum": {
+                "field": "balance"
+              }
+            }
           }
         },
         "partfemmes":{
@@ -44,6 +50,17 @@ GET /sofrecombank/_search
             }
           }
           
+        },
+        "parthommes":{
+          "bucket_script": {
+            "buckets_path": {
+              "t":"total",
+              "thomme":"bymale>somhomme"
+            },
+            "script": {
+              "source": "params.thomme/params.t"
+            }
+          }
         }
         
       }
