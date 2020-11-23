@@ -1,0 +1,22 @@
+input {
+ file {
+   path => ["D:/ELK/logstash-7.9.2/testdata.log"]
+   sincedb_path => "nul"
+   start_position => "beginning"
+  }
+}
+filter {
+   dissect {
+	mapping => { "message" => "%{timestamp->} %{duration} %{client_address} %{cache_result}/%{status_code} 
+
+%{bytes} %{request_method} %{url} %{user} %{hierarchy_code}/%{server} %{content_type}" }
+}
+}
+output {
+elasticsearch {
+ hosts => ["localhost:9200"]
+}
+  stdout {
+    codec => rubydebug
+  }
+}
