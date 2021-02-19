@@ -1,0 +1,2240 @@
+
+
+GET rachdi2/_analyze
+{
+  "text": "alpa beta 44, hh-ppp",
+  "analyzer": "abc"
+}
+
+
+GET /bankoperation3/_search
+{
+    "query" : {
+        "match" : {
+            "gender": "female"
+        }
+    },
+    "sort" : [  
+        {"age" : {"order" : "desc"}},
+        {"balance": {"order" : "desc"}}
+    ]
+}
+GET bankoperation3/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "multi_match": {
+            "query": "habib",
+            "fields": [
+              "firstname",
+              "lastname",
+              "email"
+              
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
+
+
+GET /bankoperation3/_search
+{"query":{"match":{"firstname":"habib"}},
+"highlight":{"fields":{"firstname":[]}}}
+
+GET /bankoperation3/_search
+{
+   "query":{
+      "function_score":{
+         "functions":[
+            {
+               "random_score":{}
+            }
+         ],
+         "boost_mode":"replace"
+      }
+   }
+}
+
+PUT /sofrecomblog01/
+{
+"settings": {
+  "analysis": {
+    "analyzer": {
+      "myanalyzer":{
+        "type":"custom",
+        "tokenizer":"standard",
+        "char_filter":["html_strip"],
+        "filter":["lowercase"]
+       
+      }
+    }
+  }
+}
+}
+
+
+
+
+
+GET /sofrecomblog01/_settings
+
+POST /sofrecomblog01/_analyze
+{
+  "text":"Bonjour the <font>elasticsearch</font> est un search engine of",
+  "analyzer": "myanalyzer"
+}
+
+PUT /sofrecom002
+{
+ "settings": {
+   "analysis": {
+     "analyzer": {
+       "type":"custom",
+       "tokenizer":"mytokenizer"
+      
+     },
+     "tokenizer": {
+       "mytokenizer":{
+         "type":"standard"
+       }
+     }
+     
+   }
+ }}
+
+GET /sofrecomblog/_mapping
+
+
+
+PUT /sofrecomblog008/
+{
+"settings": {
+  "analysis": {
+    "analyzer": {
+      "myanalyzer":{
+        "type":"custom",
+        "tokenizer":"mytokenizer",
+        "char_filter":["mycherfilter","html_strip"],
+        "filter":["lowercase","myfilter"]  
+       
+      }
+    },
+    "char_filter": {
+      "mycherfilter":{
+        "type":"mapping",
+        "mappings":["abc => bonjour"]
+      }
+    },
+    "tokenizer": {
+      "mytokenizer":{
+        "type":"standard"
+       
+      }
+    },"filter": {
+      "myfilter":{
+        "type":"synonym",
+        "synonyms":["bonjour, xyz => salut"]
+      }
+    }
+  }
+}
+}
+
+
+POST /sofrecomblog008/_analyze
+{
+  "text":"salut hello indexer  abc abc abcd",
+  "analyzer": "myanalyzer"
+}
+
+
+
+
+PUT /abcd001
+{
+  "mappings": {
+    
+    "properties": {
+      "nom":{"type":"text"},
+      "age":{"type": "long"},
+      "adresse":{"type": "keyword"}
+    }
+  }
+}
+
+
+GET /sofrecomblog/
+
+GET /abcd004/_doc/2
+
+POST /abcd004/_doc/2
+{
+  
+  "nom":"moi",
+  "age":44,
+  "adresse":"abc casa rue 12",
+  "prenom":"habib",
+  "fullname":{
+    "firstname":"alpha",
+    "lastname":"beta"
+  },
+  "aaaa":44
+}
+
+POST /abcd001/_doc/3
+{
+  
+  "nom":"moi",
+  "age":44
+}
+
+PUT /abcd004
+{
+  "mappings": { 
+  "dynamic":false,
+   "properties": {
+     "nom":{"type":"text"},
+      "age":{"type": "long"},
+      "adresse":{"type": "keyword"},
+     "fullname":{
+        "properties": {
+          "firstname":{"type":"text"},
+          "lastname":{"type":"text"}
+        }
+     }
+   }
+  }
+}
+
+
+
+GET //sofrecomblogfinal/_search
+PUT /sofrecomblogfinal
+{
+   "mappings" : {
+      "properties" : {
+        "category" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "content" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },
+          "analyzer": "myanalyzer"
+        },
+        "creator" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "description" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },
+          "analyzer": "standard"
+        },
+        "pubDate" : {
+          "type" : "date"
+        },
+        "title" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        }
+      }
+    },
+    "settings": {
+  "analysis": {
+    "analyzer": {
+      "myanalyzer":{
+        "type":"custom",
+        "tokenizer":"mytokenizer",
+        "char_filter":["mycherfilter","html_strip"],
+        "filter":["lowercase","myfilter"]  
+       
+      }
+    },
+    "char_filter": {
+      "mycherfilter":{
+        "type":"mapping",
+        "mappings":["abc => bonjour"]
+      }
+    },
+    "tokenizer": {
+      "mytokenizer":{
+        "type":"standard"
+       
+      }
+    },"filter": {
+      "myfilter":{
+        "type":"synonym",
+        "synonyms":["bonjour, xyz => salut"]
+      }
+    }
+  }
+}
+}
+
+
+POST /_reindex
+{
+  "source": {
+    "index": "sofrecomblog"
+  },
+  "dest": {
+    "index": "sofrecomblogfinal"
+  }
+}
+
+GET /sofrecomblogfinal/_doc/20
+
+POST /sofrecomblogfinal/_doc/20
+{
+  "title":"abc bla bla",
+  "creator":"moi",
+  "category":["cat1","cat2"],
+  "description":"word123 ",
+  "content":"<p> abc xyz alpha",
+  "pubDate" : "2016-06-27T08:45:14"
+  
+}
+
+
+GET /sofrecomblogfinal/_search
+{
+  "explain": true, 
+  "query": {
+    "match": {
+      "title": "source"
+    }
+  }
+}
+
+
+
+
+GET sofrecombank/_mapping
+
+
+GET sofrecombank/_search
+
+
+GET sofrecombank/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "gender": "female"
+          }
+        }
+      ],
+      "should": [
+        {
+          "term": {
+            "age": {
+              "value": 37
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+On cherche les clients genre : M, de preference de city: casa and state: Maroc
+ dont l’Age est  entre 20 et 30
+
+
+
+
+
+
+
+
+
+GET sofrecombank/_search
+{
+  "query": {
+    "bool": {
+     "must": [
+       {
+      "term": {
+           "gender": {
+             "value": "female"
+           }
+         }
+       },
+       {
+         "range": {
+           "age": {
+             "gte": 20,
+             "lte": 30
+           }
+         }
+       }
+     ],"should": [
+       {
+        "match": {
+           "city": "Temperanceville"
+         }
+       },
+      {
+        "match": {
+          "state": "Wyoming"
+        }
+      }
+     ],
+     "boost": 0.5
+  }
+}
+}
+
+
+GET sofrecombank/_search
+{
+  "query": {
+    "boosting": {
+      "positive": {
+        "term": {
+          "age": {
+            "value": 27
+          }
+        }
+      },
+      "negative": {
+        "range": {
+          "balance": {
+            "gte": 8000
+            
+          }
+        }
+      },
+      "negative_boost": 0.2
+    }
+  }
+}
+
+
+GET sofrecombank/_search
+{
+  "size": 100, 
+  "query": {
+"dis_max": {
+      "tie_breaker": 0.7,
+      "boost": 1.2,
+      "queries": [
+        {
+          "term": {
+            "gender": {
+              "value": "female"
+            }
+          }
+        },
+        {
+          "range": {
+            "age": {
+              "gte": 20,
+              "lte": 30
+            }
+          }
+        },
+        {
+          "range": {
+            "balance": {
+              "gte": 5000,
+              "lte": 8000
+            }
+          }
+        }
+        ]
+    }
+  }
+}
+chercher les comptes dont la balance est >8000;  Mais dont l'Age du client est >25
+ne pas remonter que les comptes qui ont plus que 5 opérations
+
+Chercher les comptes  des client « female », qui habitent a casa et travaillent a fsbm;
+
+Chercher les comptes qui ont effectué une opération >200
+
+Chercher les comptes qui ont effectué une opération de débit >200
+
+
+
+GET sofrecombank/_search
+{
+  
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "range": {
+            "balance": {
+              "gte": 8000
+              
+            }
+          }
+        },
+        {
+          "range": {
+            "age": {
+              "gte": 25
+              
+            }
+          }
+        }
+      ],
+      "filter": [
+        {
+          "range": {
+            "operations.amount": {
+              "gte": 200
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+
+GET sofrecombank/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "range": {
+            "operations.amount": {
+              "gte": 200
+            }
+          }
+        },
+        {
+          "term": {
+            "operations.type": {
+              "value": "debit"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+
+GET sofrecombank/_search
+{
+  "query": {
+      "match": {
+      "operations.type": "debit"
+    },
+    "bool": {
+      
+    },
+    "dis_max": {
+      "tie_breaker": 0.7,
+      "boost": 1.2,
+      "queries": []
+    }
+  }
+  
+}
+
+GET sofrecombank/_search
+{
+  "query": {
+   "multi_match": {
+     "query": "Washington",
+     "fields": ["firstname^2","lastname"]
+   }
+  }
+}
+
+GET sofrecombank/_search
+{
+  "size": 0, 
+  "aggs": {
+    "avgbyage": {
+      "extended_stats": {
+        "field": "age"
+      }
+    }
+  }
+}
+Quel est le max des amounts des operations du client 1?
+
+Quel est le AVG des opérations du compte num 1
+
+Quel est le AVG des opérations de type debit du compte num 1
+Quel est l’amount de plus grande valeur
+
+La somme des amount des opérations de débit /crédit?
+
+GET sofrecombank/_search
+{
+  "size": 0, 
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "operations.type": {
+              "value": "debit"
+            }
+          }
+        }
+      ]
+    }
+  }, "aggs": {
+    "gg":{
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      }
+    }
+  }
+}
+
+
+
+
+GET /sofrecombank/_search
+{
+  "size": 0, 
+ "query": {
+    "term": {
+      "gender": {
+        "value": "female"
+      }
+    }
+  } , 
+  "aggs": {
+    "avgbyage": {
+      "avg": {
+        "field": "age"
+      }
+    },
+    "maxbyage":{
+      "top_hits": {
+        "size": 2
+      }
+    }
+  }
+}
+
+
+Récupérer les opérations de débit du compte 88
+
+La somme des opérations de crédit et la somme des opérations de débit du compte num 88
+Récupèrer aussi que la balance
+
+GET /sofrecombank/_mapping
+
+GET /sofrecombank/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "account_number": {
+              "value": 88
+            }
+          }
+        }
+      ],
+        "filter": [
+        {
+          "term": {
+            "operations.type": "debit"
+          }
+        }
+      ]
+    }
+  },"aggs": {
+    "sombydebit": {
+      "sum": {
+        "field": "operations.amount",
+        "script": {
+          "source": "doc['operations.type.keyword'].value=='cridit'? doc['operations.amount'].value : 0"
+        }
+        
+      }
+    }
+  }
+}
+
+//les operations des comptes des femmes par trimestres de l'année 2016
+
+GET /sofrecombank/_search
+{
+  "size": 0, 
+  "query": {
+    "term": {
+      "gender": {
+        "value": "female"
+      }
+    }
+  }, 
+  "aggs": {
+    "bymoins": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "quarter"
+      }
+    }
+  }
+}
+
+GET /sofrecombank/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bymois": {
+      "date_range": {
+        "field": "operations.operationDate",
+        "ranges": [
+          {
+            "from": "2014-01-01",
+            "to": "2014-03-30"
+          },
+          {
+            "from": "2014-04-01",
+            "to": "2014-06-30"
+          },
+          {
+            "from": "2016-07-01",
+            "to": "2016-09-30"
+          },
+          {
+            "from": "2016-10-01",
+            "to": "2016-12-30"
+          }
+        ]
+      }
+    }
+  }
+}
+
+GET /sofrecombank/_search
+{
+  "size": 0, 
+  "aggs": {
+    "byage": {
+      "histogram": {
+        "field": "age",
+        "interval": 10
+      },"aggs": {
+        "moy": {
+          "avg": {
+            "field": "balance"
+          }
+        },"gg":{
+            "max": {
+            "field": "operations.amount"
+          }
+        }
+        
+      }
+    }
+  }
+}
+
+
+repartir les client par interval d'age entre 20-25 / 26-36 - 37 et plus
+GET /sofrecombank/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bytrancheage": {
+      "range": {
+        "field": "age",
+        "ranges": [
+          {
+            "from": 20,
+            "to": 25
+          },{
+            "from": 26,
+            "to": 36
+          },
+          {
+            "from": 37
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+GET /sofrecombank/_search
+{
+  "size": 0, 
+  "aggs": {
+    "NAME": {
+      "composite": {
+        "sources": [
+          {
+            "gender": {
+              "terms": {
+                "field": "gender.keyword"
+                
+              }
+            }
+          },
+          {
+            "age":{
+              "histogram": {
+                "field": "age",
+                "interval": 10
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+  
+}
+
+Calculer la moyenne mobile de 
+La somme des amounts des opérations (debit)
+ pour chaque mois
+
+
+
+GET /sofrecombank/_search
+{
+  "size": 0,
+  "aggs": {
+    "bymois": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      },
+      "aggs": {
+        "somme": {
+          "sum": {
+            "field": "operations.amount"
+          }
+        },
+        "moymobile":{
+          "moving_avg": {
+            "buckets_path": "somme"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+GET /sofrecombank/_search
+{
+  "size": 0,
+  "aggs": {
+    "bymois": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      },
+      "aggs": {
+        "somme": {
+          "sum": {
+            "field": "operations.amount"
+          }
+        }
+      }
+    },
+    "avgx":{
+      "avg_bucket": {
+        "buckets_path": "bymois>somme"
+      }
+    }
+  }
+   
+}
+
+
+ //la moyen des operation de debit/ et la moye des operation de credit
+  par interval de date,
+  
+  GET /sofrecombank/_search
+{
+  "size": 0,
+  "aggs": {
+    "NAME": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "calendar_interval": "month"
+      },"aggs": {
+        "total": {
+          "sum": {
+            "field": "balance"
+          }
+        },
+        "byfemale":{
+          "filter": {
+            "term": {
+              "gender.keyword": "female"
+            }
+          },
+          "aggs": {
+            "somfemale": {
+              "sum": {
+                "field": "balance"
+              }
+            }
+          }
+        },
+        "bymale":{
+          "filter": {
+            "term": {
+              "gender.keyword": "male"
+            }
+          },"aggs": {
+            "somhomme": {
+              "sum": {
+                "field": "balance"
+              }
+            }
+          }
+        },
+        "partfemmes":{
+          "bucket_script": {
+            "buckets_path": {
+              "t":"total",
+              "tfemme":"byfemale>somfemale"
+            },
+            "script": {
+              "source": "params.tfemme/params.t"
+            }
+          }
+          
+        },
+        "parthommes":{
+          "bucket_script": {
+            "buckets_path": {
+              "t":"total",
+              "thomme":"bymale>somhomme"
+            },
+            "script": {
+              "source": "params.thomme/params.t"
+            }
+          }
+        }
+      }
+    }
+  }
+  
+}
+
+
+  
+  
+   GET /sofrecombank/_search
+   {
+     "query": {
+       "bool": {
+         "must": [
+           {
+             "term": {
+               "gender": {
+                 "value": "female"
+               }
+             }
+           }
+         ]
+       }
+     },"aggs": {
+       "NAME": {
+         "max": {
+           "field": "age"
+         }
+       }
+     }
+     
+   }
+  
+ GET sofrecom2-2020.11.23/_mapping 
+
+
+GET sofrecom2-2020.11.23/_search
+{
+  "query": {
+    "range": {
+      "bytes": {
+        "gte": 12263,
+        "lte": 12363 
+      }
+    }
+  }
+}
+
+GET alpha/_mapping
+
+PUT alpha/_doc/3
+{
+  "nom":"jad",
+  "age":18,
+  "adresse":"casa"
+}
+
+GET bank2021/_count
+
+
+
+POST bank2021/_doc/171
+{
+    "account_number" : 171,
+    "balance" : 3307.79,
+    "age" : 25,
+    "firstname" : "habib",
+    "lastname" : "page",
+    "gender" : "female",
+    "company" : "COMFIRM",
+    "email" : "tessapage@comfirm.com",
+    "phone" : "+1(963)566-2487",
+    "address" : "455ColinPlace,3507",
+    "city" : "Ferney",
+    "state" : "Montana",
+    "operations" : [
+      {
+        "amount" : 105.44,
+        "operationDate" : "2018-10-12T05:51:10",
+        "type" : "cridit"
+      },
+      {
+        "amount" : 294.95,
+        "operationDate" : "2019-10-21T12:37:25",
+        "type" : "cridit"
+      },
+      {
+        "amount" : 331.17,
+        "operationDate" : "2014-07-08T05:44:01",
+        "type" : "debit"
+      },
+      {
+        "amount" : 284.89,
+        "operationDate" : "2018-04-21T08:59:09",
+        "type" : "debit"
+      },
+      {
+        "amount" : 171.68,
+        "operationDate" : "2019-04-15T08:22:28",
+        "type" : "debit"
+      }
+    ]
+  }
+
+
+
+POST /bank2021/_analyze
+{
+  "analyzer": "simple",
+  "text": "habib beni mellal alpha2, 44 est"
+}
+
+
+GET bank2021/_mapping
+
+
+
+
+GET bank2021/_search
+{
+  "query": {
+      "term": {
+        "firstname": {
+          "value": "habib"
+      }
+    }
+  }
+}
+
+
+
+GET bank2021/_search
+{
+  "query": {
+      "bool": {
+        "must": [
+          {
+            "term": {
+              "firstname": {
+                "value": "habib"
+              }
+            }
+          },
+          {
+            "match": {
+              "lastname": "Page"
+            }
+          }
+        ],
+        "should": [
+          {
+            "match": {
+              "age": 35
+            }
+          },
+          {
+            "match": {
+              "_id": "171"
+            }
+          }
+        ],
+        
+        "minimum_should_match": 1,
+        "must_not": [
+          {
+            "match": {
+              "gender": "male"
+            }
+          }
+        ]
+      }
+  }
+}
+
+On cherche les clients genre : M, de preference de city: casa and state: Maroc
+ dont l’Age est  entre 20 et 30
+
+
+GET bank2021/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "gender": "female"
+          }
+        }
+      ],
+      "should": [
+        {
+          "match": {
+            "city": "casa"
+          }
+        },
+        {
+          "match": {
+            "state": "Montana"
+          }
+        }
+      ],"boost": 3.5
+    }
+  }
+}
+
+
+
+GET bank2021/_search
+{
+  "query": {
+    
+    "boosting": {
+      "positive": {
+        "match": {
+          "gender": "female"
+        }
+      },
+      "negative": {
+        "range": {
+          "age": {
+            "gte": 20,
+            "lte": 30
+          }
+        }
+      },
+      "negative_boost": 0.2
+    }
+  }
+}
+
+
+GET bank2021/_search
+{
+  "size": 80, 
+  "query": {
+    
+    "dis_max": {
+      "tie_breaker": 0.7,
+      "boost": 1.2,
+      "queries": [
+        {
+          "match": {
+            "gender": "female"
+          }
+        },
+        {
+          "range": {
+            "age": {
+              
+              "lte": 30
+            }
+          }
+        }
+        ]
+    }
+  }}
+
+
+ ' Rechercher les compte dont la balance est  8000
+ Mais dont l'Age du client est >25
+ne pas remonter que les comptes qui ont plus que 5 opérations
+
+
+
+
+
+Chercher les comptes qui ont effectué une opération >200
+
+Chercher les comptes qui ont effectué une opération de débit et une operation >200
+
+Chercher les comptes qui ont effectué une opération de débit  >200
+
+GET bank2021/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "operations.type": {
+              "value": "debit"
+            }
+          }
+        },
+        {
+          "range": {
+            "operations.amount": {
+              "lt": 200
+              
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+    
+    
+  GET bank2224/_mapping
+    
+    
+  POST bank2224/_doc/44
+  {
+    "name":"moi",
+    "age":44
+  }
+  
+  
+  
+  PUT bank2224
+  {
+    "mappings": {
+      "dynamic":"strict",
+        "properties": {
+          "name":{"type":"text"},
+          "age":{"type" : "long"}
+        }
+    }
+    
+  }
+  
+  
+  
+  
+  
+  GET bank0011/_mapping
+  
+  
+  
+  GET bank2021/_doc/tPt8r3cBs9NT-ysOhhWo
+  
+  
+  
+ GET bank2021/_doc/tPt8r3cBs9NT-ysOhhWo
+ 
+ 
+ 
+ GET bank2021/_search
+ {
+   "query": {
+    "match": {
+      "firstname": "habib"
+    }
+    
+   },
+"highlight": {
+  "fields": {
+    "firstname": {"type":"plain"}
+  }
+}
+ }
+ 
+ 
+ 
+    
+    GET bank2021/_search
+    
+    GET bank2021/_search
+    {
+  
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "range": {
+                "operations.operationDate": {
+                  "lt": "2014-03-19"
+                  
+                }
+              }
+            },
+            {
+              "term": {
+                "gender": {
+                  "value": "female"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+    
+    
+     GET bank2021/_search
+     {
+       "query": {
+        "bool": {
+          "must": [
+            {
+              "match": {
+                "FIELD": "TEXT"
+              }
+            },
+            {},
+            {}
+          ]
+        }
+       }
+     }
+     
+     
+    "query"=>[
+            "bool"=>[
+                "must"=>[
+                    [
+                    "range"=>[
+                        "operations.operationDate"=>
+                        [
+                            "lt"=>"2014-03-19"
+                        ]
+                             ]
+                    ]
+                    ,
+                    
+                    "term"=>[
+                                "gender"=>[
+                                    "value"=>"female"
+                                    ]
+                            ]
+                        ]
+                ]
+                
+            ]
+        ]
+       
+       
+       ]
+    
+
+
+//Chercher les comptes des personnes femme qui travaillent de preference a casa  OR casablanca
+//et ne recuperer que les comptes dans l'age >28
+
+
+
+GET bank2021/_search
+{                                     body=>[
+  "query": {                                 query=>[ 
+    "bool": {                                   bool=>[
+      "must": [                                   must=>[
+        {                                             [      
+          "term": {                                     term=>[
+            "gender": {                                       gender=>[
+              "value": "female"                                     value=>female
+            }
+          }
+        }
+      ],
+      "should": [
+        {
+          "match": {
+            "city": "casa"
+          }
+        },
+        {
+          "match": {
+            "city": "casablanca"
+          }
+        }
+      ],
+      "filter": [
+        {
+          "range": {
+            "age": {
+              "gte": 28
+              
+            }
+          }
+        }
+      ]
+    }
+  }
+  
+}
+
+
+
+
+
+GET bank2021/_search
+{
+  "size": 0, 
+  "aggs": {
+    "AvgByAge": {
+      "avg": {
+        "field": "age"
+      }
+    }
+  }
+  
+}
+
+
+GET bank2021/_search
+{
+  "size": 0, 
+  "aggs": {
+    "maxi":{
+          "cardinality": {
+        "field": "age"
+      }
+    }
+    
+  }
+  
+}
+
+
+
+GET bank2021/_search
+{
+  "size": 0, 
+  "query": {
+    "term": {
+      "gender": {
+        "value": "male"
+      }
+    }
+  },
+"aggs": {
+    "avgagefemale": {
+      "avg": {
+        "field": "age"
+      }
+    }
+  }
+}
+
+select c1,c2 from table
+
+Quel est le max des amounts des operations du client 1?
+
+Quel est le AVG des opérations du compte num 1
+
+GET bank2021/_mapping
+
+GET bank2021/_search
+{
+  "size": 0, 
+  
+  "aggs": {
+    "bb": {
+      "terms": {
+        "field": "gender.keyword"
+      },
+      "aggs": {
+        "gg": {
+          "avg": {
+            "field": "age"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+POST bank2021/_analyze
+{
+  "analyzer": "n"
+}
+
+  male et female
+
+sur quoi , comment (algo/type)
+
+La somme des amount des opérations de débit /crédit?
+
+GET bank2021/_search
+{
+  "size": 0, 
+  "aggs": {
+    "aa": {
+      "max": {
+        "field": "age"
+      }
+    },
+    "bb":{
+          "min": {
+        "field": "age"
+      }
+    },
+    "cc":{
+      "avg": {
+        "field": "balance"
+      }
+    }
+  }
+  
+}
+
+GET bank2021/_search
+{
+  "size": 0,
+  "aggs": {
+    "bysexe": {
+      "terms": {
+        "field": "gender.keyword",
+        "size": 10
+      }
+    }
+  }
+}
+
+GET bank2021/_search
+{
+  "size": 0,
+  "aggs": {
+    "bydate": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      },
+        "aggs": {
+            "avv": {
+              "avg": {
+                "field": "operations.amount"
+              }
+            },
+            "ss":{
+              "sum": {
+                "field": "balance"
+              }
+            }
+      }
+    }
+  }
+}
+
+Récupérer les opération par mois Et calculer la moyen des amounts et la somme des balances de chaque mois!
+
+
+GET bank2021/_search
+{
+  "size": 0,
+  "aggs": {
+    "btdate": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      }
+    },
+    "ss":{
+      "sum": {
+        "field": "balance"
+      }
+    },
+    "vv":{
+          "avg": {
+            "field": "operations.amount"
+      }
+    }
+  }
+  
+}
+
+GET bank2021/_search
+
+
+
+GET bank2021/_search
+{
+  "size": 0,
+  "aggs": {
+    "rg": {
+      "date_range": {
+        "field": "operations.operationDate",
+        "keyed": true, 
+        "ranges": [
+          {
+             "key": "S1",
+            "from": "2015-01-01",
+            "to": "2015-04-01"
+          },
+          {
+            "key": "S2",
+            "from": "2015-04-01",
+            "to": "2015-07-01"
+          },
+          {
+            "from": "2015-07-01",
+            "to": "2015-09-01"
+          },
+          {
+            "from": "2015-09-01",
+            "to": "2015-12-31"
+          }
+        ]
+      },"aggs": {
+        "xxx": {
+          "terms": {
+            "field": "gender.keyword",
+            "size": 10
+          },"aggs": {
+            "av": {
+              "avg": {
+                "field": "balance"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+}
+
+
+
+
+
+
+GET bank2021/_search
+{
+  "size": 0,
+  "aggs": {
+    "byage":{
+      "range": {
+        "field": "age",
+        "ranges": [
+          {
+            "from": 22,
+            "to": 25
+          },
+          {
+            "from": 26,
+            "to": 40
+          },
+          {
+            "from": 40
+            
+          }
+        ]
+      },"aggs": {
+        "ggg": {
+          "avg": {
+            "field": "operations.amount"
+          }
+        }
+      }
+    }
+    
+  }
+  
+  
+}
+
+
+GET bank2021/_search
+{
+  "size": 0,
+  "aggs": {
+    "ff":{
+        "histogram": {
+          "field": "balance",
+          "interval": 10
+        },"aggs": {
+          "moy": {
+            "avg": {
+              "field": "operations.amount"
+            }
+          }
+        }
+    }
+    
+  }
+}
+  
+  
+  recuperer les comptes par intervale de 1000 de balance  et calculer la moyenne des amounts pour chaque interval
+  
+  
+  
+  
+GET bank2021/_search
+{
+  
+  "size": 0, 
+  "aggs": {
+    "ccp":{
+      "composite": {
+        "sources": [
+          {
+            "rr": {
+              "terms": {
+                "field": "gender.keyword"  
+              }
+            
+            }
+          },
+          {
+            "ss":{
+                "histogram": {
+                  "field": "age",
+                  "interval": 10
+              }
+            }
+          }
+        ]
+      },"aggs": {
+        "NAME": {
+          "top_hits": {
+            "size": 2
+          }
+        }
+      }
+    }
+    
+  }
+  
+  
+}
+  
+  
+  GET bank2021/_search
+  {
+    "explain": true, 
+    "query": {
+      "bool": {
+        "should": [
+          {
+            "match": {
+              "firstname": "habib"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+
+GET bank2021/_search
+{
+  "size": 0, 
+  "aggs": {
+    
+    "abc":{
+      "composite": {
+        "sources": [
+          {
+            "bydate": {
+              "date_histogram": {
+                "field": "operations.operationDate",
+                "interval": "year"
+              }
+            }
+          },
+          {
+            "type":{
+              "terms": {
+                "field": "operations.type.keyword"
+                
+              }
+            }
+          }
+        ],"after": {"bydate":"1514764800000", "type":"debit"}
+      },"aggs": {
+        "moy": {
+          "avg": {
+            "field": "balance"
+          }
+        }
+      }
+    }
+    
+  }
+}
+
+
+GET bank2021/_search
+{
+  "size": 0, 
+  "query": {
+    "term": {
+      "gender.keyword": {
+        "value": "female"
+      }
+    }
+  },"aggs": {
+    "byage": {
+      "avg": {
+        "field": "balance"
+      }
+    }
+
+    }
+  }
+  
+
+
+GET bank2021/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bydate": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      },"aggs": {
+        "somme": {
+          "sum": {
+            "field": "operations.amount"
+          }
+        },
+        "moymobile":{
+          "moving_avg": {
+            "buckets_path": "somme"
+          }
+        }
+      }
+    }
+  }
+  
+  
+}
+
+
+GET bank2021/_search
+{
+  "size": 0, 
+  "aggs": {
+    "byk":{
+      "terms": {
+        "field": "operations.type.keyword"
+      },"aggs": {
+        "sm": {
+          "sum": {
+            "field": "operations.amount"
+          }
+        },
+        "ff":{
+          "terms": {
+            "field": "gender.keyword"
+            
+          },"aggs": {
+            "ssss": {
+              "sum": {
+                "field": "operations.amount"
+              }
+            }
+          } 
+          
+        }
+        ,
+        "aa":{
+          "bucket_script": {
+            "buckets_path": {"a":"sm"},
+            "script": "params.a "
+          }
+        }
+      }
+    },
+    "ss":{
+      "sum": {
+        "field": "operations.amount"
+      }
+    }
+    
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+recuperer la representation des balances par gendre pendant les semestres de l'année et afficher les moyennes des operation credit et debit
+
+=>
+
+
+GET bank2021/_search?size=0
+{
+  "aggs": {
+    "date": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      },
+      "aggs": {
+        "gender": {
+          "terms": {
+            "field": "gender.keyword"
+            
+          },"aggs": {
+            "balances": {
+              "avg": {
+                "field": "balance"
+              }
+            },
+            "typeoperation":{
+              "terms": {
+                "field": "operations.type.keyword"
+                
+              },"aggs": {
+                "moy": {
+                  "avg": {
+                    "field": "operations.amount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+}
+
+
+GET bank2021/_search
+{
+  "size": 0,
+  "aggs": {
+    "moyage": {
+      "avg": {
+        "field": "age"
+      }
+    }
+  }
+  
+}
+
+
+
+GET bank2021/_search?size=0
+{
+  "aggs": {
+    "bygender":{
+      "terms": {
+        "field": "gender.keyword"
+        
+      },
+      "aggs": {
+        "avg": {
+          "avg": {
+            "field": "age"
+          }
+        }
+      }
+    }
+  }
+  
+}
+
+
+GET bank2021/_search
+{
+  "query": {
+    "match_all": {
+      
+    }
+  }
+}
+
+GET bank2021/_search?size=0
+{
+   
+  "aggs": {
+    "bygender": {
+      "terms": {
+        "field": "gender.keyword"
+      },"aggs": {
+        "byx": {
+          "avg": {
+            "field": "age"
+          }
+        }
+      }
+    },
+    "bydate":
+    {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "month"
+      },"aggs": {
+        "ggg": {
+          "avg": {
+            "field": "age"
+          }
+        }
+      }
+    }
+  }
+}
+
+[[e=>b]]  =    =======> {e:b}  [{e:b}]
+
+GET bank2021/_search?size=0
+{                 body=>[
+  "aggs": {   aggs=>[
+    "NAME": {   "name"=>[
+      "composite": { composite=>[
+        "sources": [ source=>[
+          {                    [
+            "gender": {       ge=>[
+              "terms": {
+                "field": "gender.keyword"
+              }
+            }]
+          },],
+          {
+            "date":{
+                  "histogram": {
+                "field": "age",
+                "interval": 20
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+  
+}
+
+
+
+
+
+GET bank2021/_search?size=0
+{
+  "aggs": {
+    "gendre": {
+      "terms": {
+        "field": "gender.keyword"
+      },"aggs": {
+        "somamount": {
+          "sum": {
+            "field": "operations.amount"
+          }
+        },
+        "fff":{
+          "avg": {
+            "field": "operations.amount"
+          }
+        }
+        
+        ,
+        "aa":{
+          "bucket_script": {
+            "buckets_path": {"x":"somamount", "y":"fff"},
+            "script": "params.x / params.y"
+          }
+        }
+      }
+    },
+    "total":{
+      "sum": {
+        "field": "operations.amount"
+      }
+    }
+  }
+  
+}
+
+
+
+
+calculer le % des femme et homme 
+
+
+GET bank2021/_search?size=0
+{
+  
+  "aggs": {
+    "rr": {
+      "terms": {
+        "field": "operations.type.keyword"
+      },"aggs": {
+        "a": {
+          "value_count": {
+            "field": "account_number"
+          }
+        }, 
+        "b":{
+          "sum": {
+            "field": "operations.amount"
+          }
+        },
+        "c":{
+          "bucket_script": {
+            "buckets_path": {"x":"a", "y":"b"},
+            "script": "params.x / params.y"
+          }
+        },
+        "d":{
+          "bucket_script": {
+            "buckets_path": {"z":"c", "a":"b", "b":"a"},
+            "script": "params.a/(params.z+params.b)"
+          }
+        }
+      }
+    }
+  }
+}
+
+GET bank2021/_search
+{
+  "query": {
+    "match": {
+      "gender": "female"
+    }
+  }
+}
+
+
+GET bank2021/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "gender": {
+              "value": "female"
+            }
+          }
+        },
+        {
+          "range": {
+            "age": {
+              "gte": 20,
+              "lte": 30
+            }
+          }
+        }
+      ],
+      "should": [
+        {
+          "match": {
+            "city": "casa"
+          }
+        }
+      ],
+  }
+}
+}
+
+
+
+
+GET bank2021/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+
+
+GET bank2021/_search?size=0
+{
+  "aggs": {
+    "bg":{
+      "avg": {
+        "field": "age"
+      }
+    }
+  }
+  
+}
+
+
+
+
