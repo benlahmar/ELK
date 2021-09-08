@@ -1,0 +1,1232 @@
+GET _search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+PUT aaa
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {},
+      "char_filter": {},
+      "tokenizer": {},
+      "filter": {}
+    }
+  }
+}
+
+POST myblog2022002/_close
+
+PUT myblog2022003
+{
+  "settings": { 
+    "analysis": {
+      "analyzer": {
+        "titleanlyzer":
+        {
+          "type":"custom",
+          "char_filter":["mycharfilter","html_strip"],
+          "tokenizer":"mytoken",
+          "filter":["myfilter","lowercase"]
+          
+        }
+      }
+      
+      }, 
+      "char_filter": {
+        "mycharfilter":{
+          "type":"mapping",
+          "mappings":["xx=>abc","yyy=>efg"]
+          
+        }
+      },
+      "tokenizer": {
+        "mytoken":{
+          "type":"standard"
+        }
+      },
+      "filter": {
+        "myfilter":{
+          "type":"stop",
+          "stopwords":"_french_"
+        }
+      }
+    }
+  }
+}
+
+
+GET myblog2022/_mapping
+
+POST myblog2022002/_open
+
+POST myblog2022002/_analyze
+{
+  "analyzer": "monanlyzer",
+  "text":"xx <p>abc</p> yyy 4.22 Bonjour la le les"
+}
+
+POST myblog2022002/_analyze
+{
+"tokenizer": "ngram",
+"text":"bonjour a vous"
+}
+
+
+
+GET myblog2022/_settings
+
+
+
+
+content  _> char_filter:   html_strip 
+tokinzer  _> standard/ simple
+filter _> stop
+
+
+
+description
+char_filter:   
+tokinzer  _> standard/ simple
+filter _> stop, sysnonim, "stemer"
+
+category  analyseur keyword
+creator  _> keyword / simple
+
+title -> tokenzer_ standard
+        filter -> synomem  / stemer, stop Ellision
+
+
+
+
+
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "std_folded": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "asciifolding"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "my_text": {
+        "type": "text",
+        "analyzer": "std_folded"
+      }
+    }
+  }
+}
+
+
+
+
+GET myblog2022/_mapping
+
+
+
+PUT myblog2022017
+{
+  "settings": { 
+    "analysis": {
+      "analyzer": {
+        "titleanlyzer":
+        {
+          "type":"custom",
+          "tokenizer":"standard",
+          "filter":["stopfilter","lowercase","synonymfilter"]
+          
+        },
+        "descriptionanlyzer":{
+          "type":"custom",
+          "tokenizer":"standard",
+           "filter":["stopfilter","lowercase"]
+        },
+        "contenentanlyzer":{
+          "type":"custom",
+           "char_filter":["html_strip"],
+          "tokenizer":"standard",
+          "filter":["stopfilter","lowercase"]
+        }
+        
+      },
+      "tokenizer": {
+        "mytoken":{
+          "type":"standard"
+        }
+      },
+      "filter":{
+        "synonymfilter":{
+          "type":"synonym",
+          "synonyms":["officiel  => officiel, églementaire, administratif"]
+        },
+         "stopfilter":{
+          "type":"stop",
+          "stopwords":"_french_"
+        }
+      }
+    }
+     
+      
+    }
+  }
+
+
+
+GET myblog2022/_search
+
+PUT myblog2022017/_mapping
+ {
+      "properties" : {
+        "category" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "content" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },
+          "analyzer":"contenentanlyzer"
+        },
+        "creator" : {
+          "type" : "text",
+          "term_vector":"with_positions_offsets",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },
+          "analyzer":"keyword"
+        },
+        "description" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },
+          "analyzer":"descriptionanlyzer"
+        },
+        "pubDate" : {
+          "type" : "date"
+        },
+        "title" : {
+          "type" : "text",
+          "term_vector":"with_positions_offsets",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          },
+           "analyzer":"titleanlyzer"
+        }
+      }
+    }
+  
+
+
+
+POST _reindex
+{
+  "source": {
+    "index": "myblog2022"
+  },
+  "dest": {
+    "index": "myblog2022017"
+  }
+}
+
+
+GET myblog2022017/_termvectors/100?fields=title
+
+GET myblog2022017/_search?q="Antoine Le Taxin"
+
+
+
+
+les doc qui appartient a la categorie : Craft
+et  le titre ou la description parlent du java 
+qui sont publie entre le 2015/01/01 et le 2016/01/01
+
+
+GET myblog2022017/_search
+{
+    "query": {
+      "bool": {
+        "must": [
+          {
+            "match": {
+              "category": "Craft"
+            }
+          }
+          
+        ],
+        "should": [
+          {
+            "match": {
+              "title": "java"
+            }
+          },
+          {
+            "match": {
+              "description": "java"
+            }
+          }
+        ],
+        "filter": [
+          {
+            "range": {
+              "pubDate": {
+                "gte": "2015-01-01",
+                "lte": "2016-01-01"
+              }
+            }
+          }
+          
+        ],
+        "minimum_should_match": 2
+      }
+    }
+}
+
+
+
+
+bool
+clauses:
+obligatoire must
+optionel / preference should
+
+obligatoire not ....
+filtre 
+
+
+
+
+
+GET bank2022/_search
+
+
+POST bank2022/_doc/100
+{
+          "account_number" : 100,
+          "balance" : 2450.27,
+          "age" : 37,
+          "firstname" : "habib",
+          "lastname" : "Riley",
+          "gender" : "male",
+          "company" : "SENTIA",
+          "email" : "sheliariley@sentia.com",
+          "phone" : "+1(955)431-3726",
+          "address" : "778BeverleyRoad,7429",
+          "city" : "casa",
+          "state" : "maroc",
+          "operations" : [
+            {
+              "amount" : 260.4,
+              "operationDate" : "2019-01-16T11:33:57",
+              "type" : "debit"
+            },
+            {
+              "amount" : 161.31,
+              "operationDate" : "2015-09-25T08:09:33",
+              "type" : "cridit"
+            },
+            {
+              "amount" : 100.5,
+              "operationDate" : "2014-11-22T04:40:05",
+              "type" : "debit"
+            },
+            {
+              "amount" : 132.87,
+              "operationDate" : "2016-04-30T10:29:03",
+              "type" : "debit"
+            },
+            {
+              "amount" : 289.17,
+              "operationDate" : "2019-04-20T12:35:41",
+              "type" : "cridit"
+            },
+            {
+              "amount" : 338.59,
+              "operationDate" : "2020-07-01T03:50:16",
+              "type" : "cridit"
+            }
+          ]
+        }
+      }
+
+
+On cherche les clients genre : M, de preference de city: casa and state: Maroc
+dont l’Age est  entre 20 et 30
+
+
+
+POST bank2022/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "gender": "male"
+          }
+        },
+        {
+          "range": {
+            "age": {
+              "gte": 20,
+              "lte": 30
+            }
+          }
+        }
+      ],
+      "should": [
+        {
+          "match": {
+            "city": "casa"
+          }
+          },
+          {
+            "match": {
+              "state": "maroc"
+            }
+          }
+        
+      ]
+    }
+  }
+}
+
+GET bank2022/_mapping
+
+GET bank2022/_search
+{
+  "query": {
+    "term": {
+      "gender": {
+        "value": "Female"
+      }
+    }
+  }
+}
+
+chercher les comptes des clients female et male avec classement 
+classer les female les 1er
+
+GET bank2022/_search
+{
+  "size": 10, 
+  "query": {
+    "boosting": {
+      "positive": {
+       "term": {
+         "gender": {
+           "value": "male"
+         }
+       }
+      },
+      "negative": {
+       "term": {
+         "gender": {
+           "value": "female"
+         }
+       }
+       },
+       "negative_boost": 0.2
+      }
+    }
+  }
+  
+  les comptes des females dont le solde >3000 dans le 1er rang
+  
+  
+  GET bank2022/_search
+{
+  "size": 90, 
+  "query": {
+    "dis_max": {
+      "tie_breaker": 0.9,
+    
+      "queries": [
+        {
+          "term": {
+            "gender": {
+              "value": "female"
+            }
+          }
+        },
+        {
+          "range": {
+            "age": {
+              "gte": 23
+              
+            }
+          }
+        }
+        ]
+    }
+  }
+}
+  
+Rechercher les compte dont la balance est >8000;  Mais dont l'Age du client est >25
+
+ne pas remonter que les comptes qui ont plus des amount opérations  et > 200
+
+
+
+GET bank2022/_mapping
+
+GET bank2022/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "range": {
+            "balance": {
+              "gte": 8000
+              
+            }
+          }
+        },
+        {
+          "range": {
+            "age": {
+              "gte": 25
+              
+            }
+          }
+        }
+      ],
+      "filter": [
+        {
+          "script": {
+            "script": {
+              
+              "source": "doc['operations.amount'].value > 100"
+              
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+GET bank2022/_search
+{
+  "query": {
+    "dis_max": {
+      "tie_breaker": 0.7,
+      "boost": 1.2,
+      "queries": [
+        {
+          "range": {
+            "balance": {
+              "gte": 8000
+              
+            }
+          }
+        },
+        {
+          "range": {
+            "age": {
+              "gte": 25
+              
+            }
+          }
+        }
+        
+        ]
+    }
+  }
+}
+
+//la moy des ages des femmes???
+le min et le max des solde
+
+
+GET bank2022/_search
+{
+  "size": 0, 
+  "query": {
+    "term": {
+      "gender": {
+        "value": "female"
+      }
+    }
+  },
+  "aggs": {
+    "moybyage": {
+      "avg": {
+        "field": "age"
+      }
+    },
+    "maxsolde":{
+      "max": {
+        "field": "balance"
+      }
+    },
+    "minsolde":{
+      "extended_stats": {
+        "field": "age"
+      }
+    }
+  }
+}
+
+
+
+Quel est le AVG des opérations de type debit du compte num 1
+
+GET bank2022/_search
+{
+  "size": 0, 
+  "query": {
+    "bool": {
+      "must": [
+        
+        {
+          "term": {
+            "operations.type": {
+              "value": "debit"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "abc": {
+      "avg": {
+        "field": "operations.amount"
+      }
+    }
+  }
+}
+
+
+La somme des amount des opérations de débit ?
+
+
+
+GET bank2022/_mapping
+
+la moy des ages des femmes et des hommes
+GET bank2022/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bysexe": {
+      "terms": {
+        "field": "gender.keyword"
+      },
+      "aggs": {
+        "moybyage": {
+          "avg": {
+            "field": "age"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+la moyenne des amounts des operation de debit et de credit
+
+GET bank2022/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bysexe": {
+      "terms": {
+        "field": "operations.type.keyword"
+      },
+      "aggs": {
+        "moybyage": {
+          "avg": {
+            "field": "operations.amount"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+regrouper les client par tranche d'age de 10??
+
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "bytrancheage": {
+      "histogram": {
+        "field": "age",
+        "interval": 10
+      }
+    }
+  }
+}
+
+regrouper les client  mineur et majeur??(20 -25, 26-32, 33-40, 41-sup)
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "bytrancheage2": {
+      "range": {
+        "field": "age",
+        "ranges": [
+          {
+            "from": 1,
+            "to": 25
+          },
+          {
+            "from": 26,
+            "to":30
+          },
+          {
+            "from": 31
+          }
+        ]
+      }
+    }
+  }
+  
+}
+
+repartition des soldes des femmes et des hommes par tranche de 1000
+(par des tranches 1000-3000; 3000-6000, 6000 *)
+
+GET bank2022/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bygendre": {
+      "terms": {
+        "field": "gender.keyword"
+        
+      },"aggs": {
+        "bytranchesold": {
+          "histogram": {
+            "field": "balance",
+            "interval": 1000
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+GET bank2022/_search
+{
+  "size": 0, 
+  "aggs": {
+    "bygendre": {
+      "terms": {
+        "field": "gender.keyword"
+        
+      },"aggs": {
+        "bytranchesold": {
+          "range": {
+            "field": "balance",
+            "ranges": [
+              {
+                "from": 1000,
+                "to": 2000
+              },
+              {
+                "from": 2000
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+
+
+une repartition des operation par date
+
+
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "bydate": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+         "interval": "40d",
+         "keyed": true
+         
+      }
+    }
+  }
+}
+
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "bydate":{
+    "date_range": {
+        "field": "",
+        "ranges": [
+          {
+            "from": "2014-01-01-01-01-2016",
+            "to": "now"
+          },
+          {
+            "from": "",
+            "to": ""
+          }
+        ]
+      }
+    }
+    }
+  }
+}
+
+donner la repartition des operation de debit et de credit par trimestre
+
+
+
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "bysexe": {
+      "terms": {
+        "field": "operations.type.keyword"
+        
+      },
+      "aggs": {
+        "opbydate": {
+          "date_histogram": {
+            "field": "operations.operationDate",
+            "interval": "quarter"
+          },"aggs": {
+            "moy": {
+              "avg": {
+                "field": "operations.amount"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+  
+  
+ GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "vvv":
+    {
+    "date_range": {
+        "field": "",
+        "ranges": [
+          {
+            "from": "now-100d/d",
+            "to": "now"
+          }
+        ]
+      }
+    }
+  }
+}
+  
+  
+  
+  
+    
+ GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "comp":
+    {
+    "composite": {
+        "sources": [
+          {
+            "age": {
+              "histogram": {
+                "field": "age",
+                "interval": 10
+              }
+            }
+          },
+          {
+            "solde":
+            {
+              "histogram": {
+                "field": "balance",
+                "interval": 2000
+              }
+            }
+          },
+          {
+            "sexe":
+            {
+               "terms": {
+                "field": "gender.keyword"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+  (le comportement des client de la banque selon le sexe et l'age et les types d'operation)
+  la repartition selon le type d'operation et le gendre et une tranche d'age de 10ans
+  
+  
+  
+  
+  
+  la moyen des ages des femmes?
+  
+  
+  GET bank2022/_search
+  {
+    "size": 0, 
+    "aggs": {
+      "femme": {
+        "filter": {
+          "term": {
+            "gender.keyword": "female"
+          }
+        },"aggs": {
+          "byage": {
+            "avg": {
+              "field": "age"
+            }
+          }
+        }
+      }
+    }
+  }
+  
+   GET bank2022/_search
+  {
+    "size": 0, 
+    "query": {
+      "term": {
+        "gender.keyword": {
+          "value": "female"
+        }
+      }
+    },"aggs": {
+      "byage": {
+        "avg": {
+          "field": "age"
+        }
+      }
+    }
+    
+  }
+
+la moyenne des operations de debit des femmes?
+
+
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "femme": {
+      "filter": {
+        "term": {
+          "gender.keyword": "female"
+        }
+      },"aggs": {
+        "debit": {
+          "filter": {
+            "term": {
+              "operations.type.keyword": "debit"
+            }
+          },"aggs": {
+            "moy": {
+              "avg": {
+                "field": "operations.amount"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+}
+
+
+
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "gendre": {
+      "terms": {
+        "field": "gender.keyword"
+        
+      },"aggs": {
+        "doc": {
+          "top_hits": {
+            "size": 2
+          }
+        }
+      }
+    }
+  }
+}
+
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "gg":
+    {
+      "range": {
+        "field": "age",
+        "keyed": true, 
+        "ranges": [
+          {
+            "from": 20,
+            "to": 30,
+            "key": "mineur"
+          },
+          {
+            "from": 30,
+            "to": 40,
+            "key": "majeur"
+          },
+          {
+            "from": 40,
+            "key": "retr"
+          }
+          
+        ]
+      }
+    }
+  }
+}
+
+
+la moyenne mobile des amouts par annee
+
+
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    "bydate": {
+      "date_histogram": {
+        "field": "operations.operationDate",
+        "interval": "year"
+      },
+      "aggs": 
+      {
+        "som": {
+          "sum": {
+            "field": "operations.amount"
+          }
+        },
+        "avg":
+        {
+          "avg": {
+            "field": "operations.amount"
+          }
+        },
+        "movavg":
+        {
+          "moving_avg": {
+            "buckets_path": "som"
+          }
+        },
+        "xxx":
+        {
+          "bucket_script": {
+            "buckets_path": {"x":"som", "y":"avg"},
+            "script": "params.x "
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+Calculer la part du total des amounts pour les femmes et les homme
+
+%totale /femme /homme
+somme totale 
+
+aggg
+{
+  gf: somme des femme 
+  gh:  somme des homme
+}
+calcule le % 
+
+agggs
+{
+  totale
+    tf
+    th
+  pc
+}
+
+
+
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    
+    "xxx":{
+      "histogram": {
+        "field": "age",
+        "interval": 150
+      },
+      "aggs": {
+         "ff":{
+      "filter": {
+        "term": {
+          "gender.keyword": "female"
+        }
+      },"aggs": {
+        "sf": {
+          "sum": {
+            "field": "operations.amount"
+          }
+        }
+      }
+    },
+         "hh":{
+          "filter": {
+              "term": {
+              "gender.keyword": "male"
+                }
+              },"aggs": {
+                "sh": {
+                  "sum": {
+                    "field": "operations.amount"
+                  }
+                }
+              }
+    },
+         "ph":{
+        "bucket_script": {
+        "buckets_path": {"f":"ff.sf", "h":"hh.sh"},
+        "script": "100* params.h/(params.f+params.h) "
+      }
+    },
+         "pf":{
+        "bucket_script": {
+        "buckets_path": {"f":"ff.sf", "h":"hh.sh"},
+        "script": "100* params.f/(params.f+params.h) "
+      }
+    },
+         "nn":{
+            "bucket_selector": {
+              "buckets_path": {"x":"ff.sf"},
+              "script": "200>100"
+            }
+          }
+      }
+    }
+  }
+    
+   
+    
+    }
+   
+  
+  
+
+
+GET bank2022/_search
+{
+  "size": 0,
+  "aggs": {
+    
+    "xxx":{
+      "histogram": {
+        "field": "age",
+        "interval": 150
+      },
+      "aggs": {
+         "total": {
+           "sum": {
+             "field": "operations.amount"
+           }
+         },
+         "gr":{
+           "terms": {
+             "field": "gender.keyword"
+           },"aggs": {
+             "ss": {
+               "sum": {
+                 "field": "operations.amount"
+               }
+             }
+           }
+         },
+         "pc":{ "bucket_script": {
+             "buckets_path": {"x":"total", "y":"gr.ss"},
+             "script": "params.y/params.x"
+           }
+         }
+         
+      }
+    }
+  }
+    
+   
+    
+    }
+   
+  
+
+
+
+
+
+
+
+
+
+
+
